@@ -1,0 +1,26 @@
+# Debug
+work_*/
+*.log
+components/*/config.json
+components/SimSetup/output/
+.vscode/
+
+# tpl model output/debug
+logs/
+
+# cpp build
+build_*/
+bin/
+
+# python
+__pycache__/
+venv/
+*.sqlite3
+carto_v*/
+*.png
+
+components/SimBackend/simbackend/nil_match*.csv
+components/SimBackend/simbackend/nil_match*.html
+components/SimBackend/simbackend/nodes.geojson
+data/carto/*.html
+data/carto/*.hr.geojson
