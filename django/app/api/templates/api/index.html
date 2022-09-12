@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>pipeline</title>
+    <!-- needed for adaptive design -->
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+      code {
+        color: blue;
+      }
+    </style>
+  </head>
+  <body>
+    <p>Dummy count {{ data }}</p>
+    <p>Task</p>
+    <p>id {{ task_id }}</p>
+    <p>status <code id="status">{{ status }}</code></p>
+    <p>progress <code id="progress">0/0</code></p>
+
+  </body>
+  <script>
+    function check_progress() {
+      url = '/{{ task_id }}/'
+      fetch(url).then(function(response) {
+        return response.json();
+      }).then(function(data) {
+        document.getElementById("status").innerHTML = data.status;
+        document.getElementById("progress").innerHTML = `${data.info.done}/${data.info.total}`;
+        //console.log(data);
+        if (data.status == 'SUCCESS') { clearInterval(timer); }
+      }).catch(function(e) {
+        console.log(e)
+        console.log("Booo");
+        clearInterval(timer);
+      });
+    }
+
+    const timer = setInterval(check_progress, "1000")
+
+  </script>
+</html>

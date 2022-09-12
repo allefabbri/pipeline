@@ -1,0 +1,58 @@
+version: '3.2'
+
+services:
+
+  redis:
+    image: redis:6.2.6-alpine
+    command: redis-server --port 6379
+    environment:
+      - REDIS_REPLICATION_MODE=master
+    ports:
+      - 16001:6379
+    volumes:
+      - ./work_docker/docker/redis:/var/lib/redis
+      - ./work_docker/docker/logs/redis-server.log:/var/log/redis/redis-server.log
+
+  redis-commander:
+    hostname: redis-commander:latest
+    image: rediscommander/redis-commander:latest
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    ports:
+      - 16011:8081
+    depends_on:
+      - redis
+
+  rabbit:
+    image: rabbitmq:3-management-alpine
+    ports:
+      - 16002:5672
+      - 16012:15672
+    volumes:
+      - ./work_docker/docker/rabbitmq/data:/var/lib/rabbitmq
+    #   - ./work_docker/docker/rabbitmq/log:/var/log/rabbitmq
+
+  app:
+    build:
+      context: django
+      dockerfile: Dockerfile
+    command: python manage.py runserver 0.0.0.0:8000
+    environment:
+      - CELERY_BROKER_URL=pyamqp://rabbit:5672//
+      - CELERY_RESULT_BACKEND=redis://redis:6379
+    ports:
+      - 16010:8000
+    volumes:
+      - ./django/entrypoint_django.sh:/entrypoint.sh
+
+  worker:
+    build:
+      context: django
+      dockerfile: Dockerfile
+    command: python -m celery -A app worker --loglevel=INFO
+    environment:
+      - CELERY_BROKER_URL=pyamqp://rabbit:5672//
+      - CELERY_RESULT_BACKEND=redis://redis:6379
+    volumes:
+      - ./django/entrypoint_celery.sh:/entrypoint.sh
